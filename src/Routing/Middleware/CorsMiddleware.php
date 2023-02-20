@@ -29,7 +29,10 @@ class CorsMiddleware implements MiddlewareInterface
             $response = $response
                 ->withHeader('Access-Control-Allow-Origin', $this->_allowOrigin($request))
                 ->withHeader('Access-Control-Allow-Credentials', $this->_allowCredentials())
-                ->withHeader('Access-Control-Max-Age', $this->_maxAge());
+                ->withHeader('Access-Control-Max-Age', $this->_maxAge())
+                ->withHeader('X-Content-Type-Options', $this->_contentTypeOptions())
+                ->withHeader('X-Frame-Options', $this->_frameOptions())
+                ->withHeader('X-XSS-Protection', $this->_xssProtection());
 
             if (strtoupper($request->getMethod()) === 'OPTIONS') {
                 $response = $response
@@ -125,5 +128,37 @@ class CorsMiddleware implements MiddlewareInterface
         $maxAge = (string) Configure::read('Cors.MaxAge');
 
         return ($maxAge) ?: '0';
+    }
+
+    /**
+     * @return String
+     */
+    private function _contentTypeOptions(): String
+    {
+        $contentTypeOptions = Configure::read('Cors.ContentTypeOptions');
+
+        if (is_string($contentTypeOptions) || is_array($contentTypeOptions)) {
+            return implode(', ', (array) $contentTypeOptions);
+        }
+
+        return '';
+    }
+
+    /**
+     * @return String
+     */
+    private function _frameOptions(): String
+    {
+        $frameOptions = Configure::read('Cors.FrameOptions');
+        return ($frameOptions) ? $frameOptions : 'ALLOW';
+    }
+
+    /**
+     * @return String
+     */
+    private function _xssProtection(): String
+    {
+        $xssProtection = Configure::read('Cors.XssProtection');
+        return ($xssProtection) ? implode(', ', (array) $xssProtection) : '1 ;mode=block';
     }
 }
